@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VoteChain — Blockchain Voting System</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">V</div>
+        <div>
+          <div class="brand-name">VoteChain</div>
+          <div class="brand-sub">Blockchain Voting System</div>
+        </div>
+      </div>
+      <nav class="nav">
+        <button class="nav-item active" data-tab="overview">Overview</button>
+        <button class="nav-item" data-tab="vote">Cast Your Vote</button>
+        <button class="nav-item" data-tab="results">Results</button>
+        <button class="nav-item" data-tab="admin">Admin Panel</button>
+        <button class="nav-item" data-tab="chain">Blockchain Explorer</button>
+      </nav>
+      <div class="side-card">
+        <div class="side-label">Election</div>
+        <div class="side-status" id="sideElection">—</div>
+        <div class="side-label" style="margin-top:12px">Status</div>
+        <div class="side-status" id="sideStatus">—</div>
+        <div class="side-label" style="margin-top:12px">Chain Integrity</div>
+        <div class="side-status" id="sideChain">—</div>
+      </div>
+      <p class="side-note">No Ganache. No MetaMask. No server. This system runs completely in your browser — every vote is mined into a hash-linked block.</p>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <h1 id="pageTitle">Election Overview</h1>
+          <p class="crumb">College election demo · Each vote = one block in the chain · Tamper-evident by design</p>
+        </div>
+        <span class="phase-badge" id="phaseBadge">—</span>
+      </header>
+
+      <div id="toast" class="toast" style="display:none"></div>
+
+      <!-- OVERVIEW -->
+      <section class="tab active" id="tab-overview">
+        <div class="stats">
+          <div class="stat"><span>Registered Voters</span><b id="statVoters">0</b><small>Eligible to vote</small></div>
+          <div class="stat"><span>Votes Cast</span><b id="statVotes">0</b><small id="statTurnout">Turnout 0%</small></div>
+          <div class="stat"><span>Candidates</span><b id="statCandidates">0</b><small>In this election</small></div>
+          <div class="stat"><span>Blocks in Chain</span><b id="statBlocks">0</b><small>Including genesis block</small></div>
+        </div>
+        <div class="card">
+          <h2>Election Progress</h2>
+          <div class="steps" id="phaseSteps">
+            <div class="step" data-phase="setup"><div class="dot">1</div><div><b>Setup</b><small>Admin registers voters &amp; candidates</small></div></div>
+            <div class="step-line"></div>
+            <div class="step" data-phase="open"><div class="dot">2</div><div><b>Voting Open</b><small>One voter, one vote — enforced</small></div></div>
+            <div class="step-line"></div>
+            <div class="step" data-phase="closed"><div class="dot">3</div><div><b>Closed &amp; Declared</b><small>Winner is final</small></div></div>
+          </div>
+          <div id="winnerBanner" class="winner" style="display:none"></div>
+        </div>
+        <div class="grid2">
+          <div class="card">
+            <h2>Leading Candidate</h2>
+            <div id="leaderBox" class="leader">No votes cast yet.</div>
+          </div>
+          <div class="card">
+            <h2>Demo Guide (2 minutes)</h2>
+            <ol class="howto">
+              <li>Election is already set up with 3 candidates and 5 voters.</li>
+              <li>Go to <b>Cast Your Vote</b> — enter a Voter ID like <b>CS102</b>, pick a candidate, vote. A new block is mined in front of you.</li>
+              <li>Try voting again with the same ID — the system rejects it.</li>
+              <li>Open <b>Blockchain Explorer</b> — see the blocks, hashes and links. Click <b>Verify Chain</b>, then try the <b>Tamper Test</b>.</li>
+              <li>Admin closes the election (Admin Panel, PIN <b>1234</b>) — winner appears in <b>Results</b>.</li>
+            </ol>
+          </div>
+        </div>
+      </section>
+
+      <!-- VOTE -->
+      <section class="tab" id="tab-vote">
+        <div class="grid2">
+          <div class="card">
+            <h2>Verify Your Eligibility</h2>
+            <label class="lbl">Your Voter ID (college roll / ID number)</label>
+            <div class="row">
+              <input id="voterIdInput" placeholder="e.g. CS101" class="flex1" />
+              <button id="checkVoterBtn" class="btn btn-dark">Check</button>
+            </div>
+            <div id="voterInfo" class="voter-info muted">Enter your Voter ID to check if you are registered and whether you have already voted.</div>
+            <h3 class="subhead">Demo Voter IDs (for presentation)</h3>
+            <table class="table" id="demoVotersTable">
+              <thead><tr><th>Voter ID</th><th>Name</th><th>Status</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div class="card">
+            <h2>Choose Your Candidate</h2>
+            <div id="ballotList"></div>
+            <button id="castVoteBtn" class="btn btn-primary w100 big" disabled>Select a candidate first</button>
+            <p class="muted small">On voting, a new block containing your vote is mined (proof-of-work) and added to the chain. This cannot be undone.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- RESULTS -->
+      <section class="tab" id="tab-results">
+        <div class="card">
+          <div class="card-head"><h2>Live Results</h2><span class="muted" id="resultsNote"></span></div>
+          <div id="resultsList"></div>
+          <div id="winnerBanner2" class="winner" style="display:none"></div>
+        </div>
+      </section>
+
+      <!-- ADMIN -->
+      <section class="tab" id="tab-admin">
+        <div class="card" id="adminLock">
+          <h2>Admin Login</h2>
+          <p class="muted">The Election Officer manages voters, candidates and the election phase from here.</p>
+          <label class="lbl">Admin PIN (demo)</label>
+          <div class="row">
+            <input id="adminPin" type="password" placeholder="Demo PIN: 1234" class="flex1" />
+            <button id="adminLoginBtn" class="btn btn-primary">Login</button>
+          </div>
+        </div>
+        <div id="adminPanel" style="display:none">
+          <div class="grid2">
+            <div class="card">
+              <h2>Register New Voter</h2>
+              <label class="lbl">Voter ID</label>
+              <input id="newVoterId" placeholder="e.g. CS106" />
+              <label class="lbl">Full name</label>
+              <input id="newVoterName" placeholder="e.g. Anjali Patil" />
+              <button id="addVoterBtn" class="btn btn-primary w100">Register Voter</button>
+            </div>
+            <div class="card">
+              <h2>Add Candidate</h2>
+              <label class="lbl">Candidate name</label>
+              <input id="newCandName" placeholder="e.g. Rahul Sharma" />
+              <label class="lbl">Panel / Class</label>
+              <input id="newCandParty" placeholder="e.g. Final Year Panel" />
+              <button id="addCandBtn" class="btn btn-primary w100">Add Candidate</button>
+              <p class="muted small">Candidates can be added only before the first vote is cast.</p>
+            </div>
+          </div>
+          <div class="grid2">
+            <div class="card">
+              <h2>Control Election</h2>
+              <button id="openBtn" class="btn btn-primary w100">Open Voting</button>
+              <button id="closeBtn" class="btn btn-danger w100">Close Voting &amp; Declare Result</button>
+              <p class="muted small">Closing is final for this election run. Results and the winner then become public on the Overview and Results tabs.</p>
+            </div>
+            <div class="card">
+              <h2>Danger Zone</h2>
+              <button id="resetBtn" class="btn btn-ghost-dark w100">Reset Election (fresh demo data)</button>
+              <p class="muted small">Clears all votes and restores the original demo candidates and voters stored in this browser.</p>
+            </div>
+          </div>
+          <div class="card">
+            <h2>Registered Voters</h2>
+            <table class="table" id="adminVotersTable">
+              <thead><tr><th>Voter ID</th><th>Name</th><th>Has Voted</th><th>Voted At (Block)</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- EXPLORER -->
+      <section class="tab" id="tab-chain">
+        <div class="card">
+          <div class="card-head">
+            <h2>Blockchain Explorer — The Tamper-Evident Record</h2>
+            <div class="row">
+              <button id="verifyBtn" class="btn btn-primary">Verify Chain</button>
+              <button id="tamperBtn" class="btn btn-danger-outline">Tamper Test</button>
+              <button id="restoreBtn" class="btn btn-dark" style="display:none">Restore Original</button>
+            </div>
+          </div>
+          <div id="verifyResult" class="verify-box muted">Every block stores the previous block's hash. If anyone edits an old vote, its hash changes and verification fails. Click Verify Chain to check the full chain.</div>
+          <div id="chainList" class="chain-list"></div>
+        </div>
+      </section>
+
+      <footer class="foot">VoteChain — Blockchain-Based Voting System · Built-in JavaScript blockchain (SHA-256 · proof-of-work · hash-linked blocks) · Solidity contract (Voting.sol) included for the subject · No Ganache / MetaMask / server needed</footer>
+    </main>
+  </div>
+  <script src="sha256.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
